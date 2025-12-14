@@ -4,6 +4,8 @@
 -- Total: 105+ records
 -- ============================================
 
+TRUNCATE TABLE student_services, student_activities, study_habits, exam_scores, parent_background CASCADE;
+TRUNCATE TABLE services, activities, student RESTART IDENTITY CASCADE;
 -- 1. INSERT SERVICES DATA
 INSERT INTO services (service_name) VALUES
 ('English Language Program'),
@@ -214,22 +216,7 @@ INSERT INTO study_habits (id_student, study_hours_per_week, prefers_group_study,
 (87, 18, true, true),
 (88, 21, false, true),
 (89, 14, true, false),
-(90, 19, true, true),
-(91, 20, false, false),
-(92, 15, true, true),
-(93, 17, true, false),
-(94, 18, false, true),
-(95, 19, true, true),
-(96, 16, true, false),
-(97, 21, false, true),
-(98, 14, true, false),
-(99, 20, true, true),
-(100, 18, false, true),
-(101, 16, true, false),
-(102, 19, true, true),
-(103, 15, false, false),
-(104, 17, true, true),
-(105, 20, false, true);
+(90, 19, true, true);
 
 -- 5. INSERT EXAM_SCORES DATA (1:1 relationship)
 INSERT INTO exam_scores (id_student, math_score, reading_score, writing_score) VALUES
@@ -322,23 +309,7 @@ INSERT INTO exam_scores (id_student, math_score, reading_score, writing_score) V
 (87, 89, 87, 89),
 (88, 82, 80, 82),
 (89, 77, 75, 77),
-(90, 85, 83, 85),
-(91, 92, 90, 92),
-(92, 73, 71, 73),
-(93, 86, 84, 86),
-(94, 79, 77, 79),
-(95, 88, 86, 88),
-(96, 74, 72, 74),
-(97, 84, 82, 84),
-(98, 90, 88, 90),
-(99, 81, 79, 81),
-(100, 72, 70, 72),
-(101, 87, 85, 87),
-(102, 93, 91, 93),
-(103, 76, 74, 76),
-(104, 85, 83, 85),
-(105, 89, 87, 89);
-
+(90, 85, 83, 85);
 -- 6. INSERT PARENT_BACKGROUND DATA (1:N relationship)
 INSERT INTO parent_background (id_student, parent_type, parent_occupation, parental_level_of_education) VALUES
 (1, 'Father', 'Engineer', 'Bachelor'),
@@ -520,38 +491,7 @@ INSERT INTO parent_background (id_student, parent_type, parent_occupation, paren
 (89, 'Father', 'Actor', 'Bachelor'),
 (89, 'Mother', 'Actress', 'Bachelor'),
 (90, 'Father', 'Stunt Performer', 'High School'),
-(90, 'Mother', 'Choreographer', 'Diploma'),
-(91, 'Father', 'Dancer', 'Diploma'),
-(91, 'Mother', 'Dance Teacher', 'Bachelor'),
-(92, 'Father', 'Singer', 'Diploma'),
-(92, 'Mother', 'Vocal Coach', 'Bachelor'),
-(93, 'Father', 'Composer', 'Master'),
-(93, 'Mother', 'Conductor', 'Master'),
-(94, 'Father', 'Instrumentalist', 'Bachelor'),
-(94, 'Mother', 'Music Producer', 'Bachelor'),
-(95, 'Father', 'Sound Designer', 'Bachelor'),
-(95, 'Mother', 'Audio Engineer', 'Diploma'),
-(96, 'Father', 'Studio Manager', 'Bachelor'),
-(96, 'Mother', 'Recording Engineer', 'Diploma'),
-(97, 'Father', 'Podcast Host', 'Bachelor'),
-(97, 'Mother', 'Podcast Producer', 'Bachelor'),
-(98, 'Father', 'Radio Host', 'Bachelor'),
-(98, 'Mother', 'News Anchor', 'Bachelor'),
-(99, 'Father', 'Reporter', 'Bachelor'),
-(99, 'Mother', 'Correspondent', 'Bachelor'),
-(100, 'Father', 'News Editor', 'Bachelor'),
-(100, 'Mother', 'Publication Manager', 'Bachelor'),
-(101, 'Father', 'Columnist', 'Bachelor'),
-(101, 'Mother', 'Blogger', 'Bachelor'),
-(102, 'Father', 'Publishing Manager', 'Bachelor'),
-(102, 'Mother', 'Book Editor', 'Master'),
-(103, 'Father', 'Author', 'Master'),
-(103, 'Mother', 'Copywriter', 'Bachelor'),
-(104, 'Father', 'Translator', 'Bachelor'),
-(104, 'Mother', 'Interpreter', 'Bachelor'),
-(105, 'Father', 'Linguist', 'Master'),
-(105, 'Mother', 'Language Teacher', 'Master');
-
+(90, 'Mother', 'Choreographer', 'Diploma');
 -- 7. INSERT STUDENT_SERVICES DATA (M:N relationship)
 -- Each student enrolled in 2-3 services
 INSERT INTO student_services (id_student, service_id, service_status) VALUES
@@ -644,22 +584,7 @@ INSERT INTO student_services (id_student, service_id, service_status) VALUES
 (87, 4, 'Active'), (87, 7, 'Active'),
 (88, 6, 'Active'), (88, 9, 'Active'),
 (89, 8, 'Active'), (89, 10, 'Active'),
-(90, 1, 'Active'), (90, 2, 'Active'),
-(91, 3, 'Active'), (91, 4, 'Active'),
-(92, 5, 'Active'), (92, 6, 'Active'),
-(93, 7, 'Active'), (93, 8, 'Active'),
-(94, 9, 'Active'), (94, 10, 'Active'),
-(95, 1, 'Active'), (95, 5, 'Inactive'),
-(96, 2, 'Active'), (96, 6, 'Active'),
-(97, 3, 'Active'), (97, 7, 'Active'),
-(98, 4, 'Active'), (98, 8, 'Active'),
-(99, 9, 'Active'), (99, 10, 'Active'),
-(100, 1, 'Active'), (100, 2, 'Active'),
-(101, 3, 'Active'), (101, 4, 'Active'),
-(102, 5, 'Active'), (102, 6, 'Active'),
-(103, 7, 'Active'), (103, 8, 'Active'),
-(104, 9, 'Active'), (104, 10, 'Active'),
-(105, 1, 'Active'), (105, 2, 'Active');
+(90, 1, 'Active'), (90, 2, 'Active');
 
 -- 8. INSERT STUDENT_ACTIVITIES DATA (M:N relationship)
 -- Each student participates in 1-2 activities
@@ -753,22 +678,7 @@ INSERT INTO student_activities (id_student, activity_id, hours_per_week) VALUES
 (87, 3, 4), (87, 10, 2),
 (88, 4, 3),
 (89, 5, 5), (89, 6, 2),
-(90, 7, 4),
-(91, 8, 3), (91, 9, 2),
-(92, 1, 5),
-(93, 2, 4), (93, 5, 2),
-(94, 3, 3),
-(95, 4, 5), (95, 10, 2),
-(96, 6, 4),
-(97, 7, 3), (97, 8, 2),
-(98, 1, 5),
-(99, 2, 4), (99, 9, 2),
-(100, 3, 3),
-(101, 4, 5), (101, 5, 2),
-(102, 6, 4),
-(103, 7, 3), (103, 10, 2),
-(104, 8, 5),
-(105, 1, 4);
+(90, 7, 4);
 
 -- Verify inserted data
 SELECT 'Student' as table_name, COUNT(*) as record_count FROM student
