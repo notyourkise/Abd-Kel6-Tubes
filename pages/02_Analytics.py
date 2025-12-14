@@ -23,83 +23,85 @@ def apply_gold_theme(fig):
     )
     return fig
 
+# --- CLEANING HELPER ---
 def clean_category(series):
-    def _normalize(value):
-        if value is None:
-            return "Tidak Diketahui"
-        if isinstance(value, str):
-            stripped = value.strip()
-            if stripped == "":
-                return "Tidak Diketahui"
-            if stripped.lower() in {"undefined", "none", "null"}:
-                return "Tidak Diketahui"
-        return value
-    return series.apply(_normalize)
+    return series.fillna("Tidak Diketahui")
 
 st.title("Deep Analytics")
 
 tab1, tab2, tab3 = st.tabs(["Performance Factors", "Demographics", "Correlations"])
 
+# --- TAB 1: TEST PREPARATION (Complex JOIN) ---
 with tab1:
     st.subheader("Impact of Test Preparation")
-    prep_df = db.execute_query("""
-        SELECT test_preparation_course, 
-               AVG(math_score) as math, 
-               AVG(reading_score) as reading, 
-               AVG(writing_score) as writing 
-        FROM student 
-        GROUP BY test_preparation_course
-    """)
+    
+    # Logic: Left Join untuk melihat siapa yang ambil course 'Test Preparation Course'
+    # Jika srv.service_name NULL, berarti dia tidak ambil course itu (None)
+    prep_query = """
+        SELECT 
+            CASE 
+                WHEN srv.service_name = 'Test Preparation Course' THEN 'Completed' 
+                ELSE 'None' 
+            END as status,
+            AVG(e.math_score) as math, 
+            AVG(e.reading_score) as reading, 
+            AVG(e.writing_score) as writing 
+        FROM student s
+        JOIN exam_scores e ON s.id_student = e.id_student
+        LEFT JOIN student_services ss ON s.id_student = ss.id_student
+        LEFT JOIN services srv ON ss.service_id = srv.service_id AND srv.service_name = 'Test Preparation Course'
+        GROUP BY status
+    """
+    prep_df = db.execute_query(prep_query)
     
     if not prep_df.empty:
-        prep_df['test_preparation_course'] = clean_category(prep_df['test_preparation_course'])
         prep_df[['math', 'reading', 'writing']] = prep_df[['math', 'reading', 'writing']].round(2)
+        
         col1, col2 = st.columns([2, 1])
         with col1:
-            fig = px.bar(prep_df, x='test_preparation_course', y=['math', 'reading', 'writing'], barmode='group')
+            fig = px.bar(prep_df, x='status', y=['math', 'reading', 'writing'], barmode='group')
             fig = apply_gold_theme(fig)
-            fig.update_layout(
-                xaxis_title="Program Persiapan",
-                yaxis_title="Nilai Rata-rata"
-            )
+            fig.update_layout(xaxis_title="Status Persiapan", yaxis_title="Nilai Rata-rata")
             st.plotly_chart(fig, use_container_width=True)
+            
         with col2:
             st.markdown("""
-            **Tujuan grafik:** Memetakan dampak program persiapan ujian terhadap tiga jenis nilai.
-            **Cara baca:** Bandingkan tinggi bar antar kategori untuk melihat sejauh mana latihan tambahan meningkatkan performa.
-            **Insight yang dicari:** Apakah investasi waktu dan biaya untuk kursus persiapan layak karena mampu mendorong nilai rata-rata.
+            **Analisis:** Grafik ini membandingkan rata-rata nilai siswa yang mengambil kursus persiapan vs yang tidak.
+            Biasanya, siswa dengan status **Completed** memiliki skor lebih tinggi di ketiga mata pelajaran.
             """)
 
+# --- TAB 2: DEMOGRAPHICS (Etnis) ---
 with tab2:
     st.subheader("Ethnicity & Performance")
-    eth_df = db.execute_query("""
-        SELECT ethnicity, 
-               AVG(math_score) as math, 
-               AVG(reading_score) as reading, 
-               AVG(writing_score) as writing 
-        FROM student 
-        GROUP BY ethnicity
-    """)
+    
+    # Update: ethnicity -> race_ethnicity
+    # Update: Ambil nilai dari exam_scores
+    eth_query = """
+        SELECT s.race_ethnicity, 
+               AVG(e.math_score) as math, 
+               AVG(e.reading_score) as reading, 
+               AVG(e.writing_score) as writing 
+        FROM student s
+        JOIN exam_scores e ON s.id_student = e.id_student
+        GROUP BY s.race_ethnicity
+        ORDER BY s.race_ethnicity
+    """
+    eth_df = db.execute_query(eth_query)
     
     if not eth_df.empty:
-        eth_df['ethnicity'] = clean_category(eth_df['ethnicity'])
         eth_df[['math', 'reading', 'writing']] = eth_df[['math', 'reading', 'writing']].round(2)
-        fig = px.bar(eth_df, x='ethnicity', y=['math', 'reading', 'writing'], barmode='group')
+        
+        fig = px.bar(eth_df, x='race_ethnicity', y=['math', 'reading', 'writing'], barmode='group')
         fig = apply_gold_theme(fig)
-        fig.update_layout(
-            xaxis_title="Kelompok Etnis",
-            yaxis_title="Nilai Rata-rata"
-        )
+        fig.update_layout(xaxis_title="Kelompok Etnis", yaxis_title="Nilai Rata-rata")
         st.plotly_chart(fig, use_container_width=True)
-        st.markdown("""
-        **Tujuan grafik:** Membandingkan capaian rata-rata tiap kelompok demografis.
-        **Cara baca:** Bar yang lebih tinggi menunjukkan kelompok yang relatif unggul di mata pelajaran tertentu.
-        **Insight yang dicari:** Identifikasi kesenjangan performa sehingga sekolah bisa menargetkan intervensi yang lebih adil.
-        """)
 
+# --- TAB 3: CORRELATIONS ---
 with tab3:
     st.subheader("Score Correlations")
-    scores = db.execute_query("SELECT math_score, reading_score, writing_score FROM student")
+    
+    # Update: Ambil langsung dari exam_scores
+    scores = db.execute_query("SELECT math_score, reading_score, writing_score FROM exam_scores")
     
     if not scores.empty:
         col1, col2 = st.columns(2)
@@ -111,8 +113,3 @@ with tab3:
             fig = px.scatter(scores, x='math_score', y='reading_score', title="Math vs Reading")
             fig = apply_gold_theme(fig)
             st.plotly_chart(fig, use_container_width=True)
-        st.markdown("""
-        **Tujuan grafik:** Mengukur hubungan antar nilai mata pelajaran sehingga korelasi positif/negatif terlihat jelas.
-        **Cara baca:** Titik yang membentuk garis diagonal rapat menandakan korelasi kuat; sebaran acak menandakan hubungan lemah.
-        **Insight yang dicari:** Mengetahui mata pelajaran mana yang bergerak bersama untuk merancang strategi pengajaran terpadu.
-        """)
